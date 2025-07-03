@@ -1,0 +1,37 @@
+GoTools - The Ultimate PDF & Image Toolkit
+------------------------------------------
+
+ABOUT GOTOOLS
+GoTools is a powerful, fast, and secure web application for all your document and image needs. It provides a complete suite of high-performance tools in a clean, modern, and mobile-friendly interface. No ads, no subscriptions—just the tools you need.
+
+All files are processed securely on our server and are automatically deleted after a short time to protect your privacy.
+
+---
+
+WHAT IT CAN DO
+
+**PDF Tools:**
+*   Compress PDF: Make PDF files smaller. Choose a quality level or set a specific target size (e.g., "500 KB").
+*   Merge PDF: Combine several PDF files into one single document. You can reorder the files before merging.
+*   Organize PDF: The most powerful tool. View all pages from multiple PDFs at once. Drag-and-drop to reorder, rotate, or delete pages before saving a new, combined file.
+
+**Image Tools:**
+*   Compress Image: Reduce the file size of JPG, PNG, and WebP images with a quality slider.
+*   Image to Text (OCR): Pull text out of any image. Turns pictures of text into editable text.
+
+**Converter Tools:**
+*   Word to PDF: Quickly convert Microsoft Word files (.doc, .docx) into professional PDFs. You can convert multiple files at once.
+*   Image to PDF: Turn a collection of images into a single, easy-to-share PDF file.
+*   PDF to PNG: Convert every page of a PDF into a high-quality PNG image. You can download pages one-by-one or all together in a ZIP file.
+*   PDF to Text (OCR): Extract all the text from a scanned PDF so you can copy and edit it.
+
+**Key Features:**
+*   Simple and intuitive interface for all tools.
+*   Fast server-side processing for large files.
+*   Fully responsive for use on mobile phones, tablets, and desktops.
+*   Multiple themes, including Light, Dark, and Neon modes.
+
+---
+
+TECHNOLOGY
+GoTools is powered by a modern React frontend and a robust Node.js backend. It uses best-in-class open-source engines like Ghostscript, Poppler, and LibreOffice to ensure high-quality, professional results for every operation.
