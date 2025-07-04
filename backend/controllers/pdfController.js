@@ -17,6 +17,8 @@ function safeUnlink(filePath) {
 
 // === ALL TOOL LOGIC FUNCTIONS ARE DEFINED BELOW ===
 
+// --- Replace the entire compressPdf function with this final version ---
+
 const compressPdf = async (req, res) => {
   const tempPath = req.file.path;
   try {
@@ -24,17 +26,30 @@ const compressPdf = async (req, res) => {
     const { compressionMode = 'quality', quality = 75, targetSize = 500 } = req.body;
     const originalSize = req.file.size;
 
-    // --- THIS IS THE FIX ---
-    // Determine the correct Ghostscript command based on the operating system.
-    const gsCommand = os.platform() === 'win32' ? 'gswin64c' : 'gs';
-
     const runGhostscript = (dpi, pdfSetting = '/default') => new Promise(resolve => {
       const tempOutputName = `${uuidv4()}_iter.pdf`;
       const tempOutputPath = path.join(__dirname, '..', 'outputs', tempOutputName);
       
-      // Use the dynamic command name here
-      const command = `${gsCommand} -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=${pdfSetting} -dNOPAUSE -dQUIET -dBATCH -dColorImageResolution=${dpi} -dGrayImageResolution=${dpi} -dMonoImageResolution=${dpi} -sOutputFile="${tempOutputPath}" "${tempPath}"`;
-      
+      // --- NEW, MORE POWERFUL GHOSTSCRIPT COMMAND ---
+      // We've added several new flags to force more aggressive optimization.
+      const command = [
+        os.platform() === 'win32' ? 'gswin64c' : 'gs',
+        '-sDEVICE=pdfwrite',
+        '-dCompatibilityLevel=1.5',
+        '-dPDFSETTINGS=' + pdfSetting,
+        '-dNOPAUSE', '-dQUIET', '-dBATCH',
+        '-dDetectDuplicateImages=true',    // Merges duplicate images
+        '-dCompressFonts=true',            // Compresses fonts
+        '-dDownsampleColorImages=true',
+        '-dColorImageResolution=' + dpi,
+        '-dDownsampleGrayImages=true',
+        '-dGrayImageResolution=' + dpi,
+        '-dDownsampleMonoImages=true',
+        '-dMonoImageResolution=' + dpi,
+        '-sOutputFile="' + tempOutputPath + '"',
+        '"' + tempPath + '"'
+      ].join(' '); // Join all parts with a space
+
       exec(command, (error) => {
         if (error || !fs.existsSync(tempOutputPath)) return resolve(null);
         resolve({ path: tempOutputPath, size: fs.statSync(tempOutputPath).size, name: tempOutputName });
@@ -64,8 +79,11 @@ const compressPdf = async (req, res) => {
     const finalName = `${uuidv4()}_compressed.pdf`;
     fs.renameSync(bestResult.path, path.join(__dirname, '..', 'outputs', finalName));
     res.json({ fileName: finalName, originalSize, compressedSize: bestResult.size });
-  } catch (e) { res.status(500).json({ message: e.message || 'An unknown error occurred.' }); }
-  finally { safeUnlink(tempPath); }
+  } catch (e) {
+    res.status(500).json({ message: e.message || 'An unknown error occurred.' });
+  } finally {
+    safeUnlink(tempPath);
+  }
 };
 
 

@@ -1,79 +1,76 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import TerminalModal from './TerminalModal'; // Make sure this is imported
+import TerminalModal from './TerminalModal'; // Import our new modal
 
-// A larger pool of messages to cycle through for a more dynamic feel
-const terminalLogLines = [
-    "[SYSTEM BOOT] Netgain Engine v2.7.3 initialized...",
-    "[INFO] GoTools Module: ACTIVE",
-    "[STATUS] All systems operational. ✅",
-    "[DEV] Maheswar node... ONLINE",
-    "[DEV] Hemanth node... ONLINE",
-    "[LOG] PDF compressed successfully (payload: 5.2MB -> 1.3MB)",
-    "[LOG] Image converted to PDF (4 files)",
-    "[SECURITY] Firewall integrity: 100%",
-    "Reticulating splines... complete.",
-    "Querying developer caffeine levels... CRITICAL ☕",
-    "Current thread uptime: 4h 21m 08s",
+// --- The rotating messages for the terminal ---
+const terminalMessages = [
+    "[Netgain Engine v2.7.3] System stable. GoTools module: active ✅",
+    "⚙️ Build: netgain-alpha-042 | Status: Operational",
+    "👨‍💻 Developer: Maheswar | Systems Lead",
+    "👨‍💻 Developer: Hemanth | Interface Architect",
+    "🛰️ Broadcasting from Netgain Core... \"PDF compressed successfully in 1.3s\"",
+    "[⚡] Glitch detected... rerouting power to Maheswar's node",
+    "[⚡] Glitch detected... rerouting UX packet to Hemanth's sector",
+    "↪ Engine thread uptime: 3h 14m 52s",
 ];
-
-// Function to get a few random log lines
-const getLogLines = (count = 3) => {
-    const shuffled = [...terminalLogLines].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count);
-};
 
 const Footer = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [logLines, setLogLines] = useState(getLogLines());
-    
-    // Effect to rotate the log messages every 6 seconds
+    const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+    const [displayedText, setDisplayedText] = useState('');
+
+    // Effect to handle rotating to the next message
     useEffect(() => {
-        const interval = setInterval(() => {
-            setLogLines(getLogLines());
-        }, 6000); // Rotate every 6 seconds
-        return () => clearInterval(interval);
+        const messageInterval = setInterval(() => {
+            setCurrentMessageIndex(prevIndex => (prevIndex + 1) % terminalMessages.length);
+        }, 5000); // Change message every 5 seconds
+        return () => clearInterval(messageInterval);
     }, []);
+
+    // Effect to handle the typing animation for the current message
+    useEffect(() => {
+        setDisplayedText(''); // Reset text when the message index changes
+        const fullText = terminalMessages[currentMessageIndex];
+        let i = 0;
+        const typingInterval = setInterval(() => {
+            if (i < fullText.length) {
+                setDisplayedText(prev => prev + fullText.charAt(i));
+                i++;
+            } else {
+                clearInterval(typingInterval);
+            }
+        }, 40); // Adjust typing speed here (lower is faster)
+        return () => clearInterval(typingInterval);
+    }, [currentMessageIndex]);
+
 
     return (
       <>
         <TerminalModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         
         <motion.footer
-          className="relative bg-black/80 border-t-2 border-cyan-500/30 text-base terminal-font p-6 mt-20 cursor-pointer shadow-lg shadow-cyan-500/5 overflow-hidden"
+          className="relative bg-gray-900 border-t-2 border-cyan-500/30 text-sm terminal-font p-6 mt-20 cursor-pointer shadow-lg shadow-cyan-500/10 overflow-hidden"
           onClick={() => setIsModalOpen(true)}
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.8, ease: "circOut" }}
+          aria-label="Click to open developer console"
+          title="Click to view developer info"
         >
-            {/* The new scanline overlay effect */}
-            <div className="scanline-overlay"></div>
-
-            <div className="container mx-auto relative z-10">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Column 1: Live Log */}
-                    <div className="md:col-span-2">
-                        <p className="text-green-400 font-bold">[LIVE ENGINE LOG]</p>
-                        <div className="pl-4 border-l border-green-400/30 mt-2 text-cyan-400 space-y-1">
-                            {logLines.map((line, index) => (
-                                <p key={index}><span className="text-gray-500 mr-2">{'>'}</span>{line}</p>
-                            ))}
-                        </div>
-                    </div>
-                    
-                    {/* Column 2: Static Info */}
-                    <div className="text-left md:text-right border-t md:border-t-0 md:border-l border-cyan-500/20 pt-4 md:pt-0 md:pl-4 mt-4 md:mt-0">
-                        <p className="font-bold text-green-400">STATUS: OPERATIONAL</p>
-                        <p className="text-gray-400">Powered by <span className="text-white">Netgain</span></p>
-                        <p className="text-gray-400">Dev Crew: <span className="text-white">Maheswar & Hemanth</span></p>
-                    </div>
-                </div>
-
-                {/* The final, always-visible line */}
-                <div className="text-gray-600 mt-6 pt-4 border-t border-cyan-500/20 text-center text-xs">
-                    <p>Click anywhere on the terminal to view developer profiles.<span className="cursor"></span></p>
-                </div>
-            </div>
+          <div className="scanline-overlay"></div>
+          <div className="container mx-auto relative z-10">
+              {/* The dynamic, rotating line */}
+              <div className="h-6 text-cyan-400">
+                  <span className="text-green-400 font-bold mr-2">LOG:</span>
+                  <span>{displayedText}</span>
+                  <span className="cursor"></span>
+              </div>
+              
+              {/* The static, always-visible line */}
+              <div className="text-gray-600 mt-4 pt-4 border-t border-cyan-500/20 text-center">
+                  <p>⚙️ Engine powered by Netgain · 👨‍💻 Maheswar & Hemanth · Built with grit, caffeine, and cosmic ambition.</p>
+              </div>
+          </div>
         </motion.footer>
       </>
     );
