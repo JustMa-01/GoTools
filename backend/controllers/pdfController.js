@@ -1,3 +1,4 @@
+const os = require('os');
 const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -23,10 +24,17 @@ const compressPdf = async (req, res) => {
     const { compressionMode = 'quality', quality = 75, targetSize = 500 } = req.body;
     const originalSize = req.file.size;
 
+    // --- THIS IS THE FIX ---
+    // Determine the correct Ghostscript command based on the operating system.
+    const gsCommand = os.platform() === 'win32' ? 'gswin64c' : 'gs';
+
     const runGhostscript = (dpi, pdfSetting = '/default') => new Promise(resolve => {
       const tempOutputName = `${uuidv4()}_iter.pdf`;
       const tempOutputPath = path.join(__dirname, '..', 'outputs', tempOutputName);
-      const command = `gswin64c -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=${pdfSetting} -dNOPAUSE -dQUIET -dBATCH -dColorImageResolution=${dpi} -dGrayImageResolution=${dpi} -dMonoImageResolution=${dpi} -sOutputFile="${tempOutputPath}" "${tempPath}"`;
+      
+      // Use the dynamic command name here
+      const command = `${gsCommand} -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=${pdfSetting} -dNOPAUSE -dQUIET -dBATCH -dColorImageResolution=${dpi} -dGrayImageResolution=${dpi} -dMonoImageResolution=${dpi} -sOutputFile="${tempOutputPath}" "${tempPath}"`;
+      
       exec(command, (error) => {
         if (error || !fs.existsSync(tempOutputPath)) return resolve(null);
         resolve({ path: tempOutputPath, size: fs.statSync(tempOutputPath).size, name: tempOutputName });
@@ -59,6 +67,7 @@ const compressPdf = async (req, res) => {
   } catch (e) { res.status(500).json({ message: e.message || 'An unknown error occurred.' }); }
   finally { safeUnlink(tempPath); }
 };
+
 
 const mergePdfs = async (req, res) => {
   const files = req.files;
